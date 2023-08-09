@@ -1,0 +1,152 @@
+Amazon CloudWatch + PagerDuty Benefits
+Amazon CloudWatch provides monitoring for AWS resources and customer-run applications. The service can collect data, gain insight, and alert users to fix problems within applications and organizations.
+Amazon CloudWatch gives system-wide visibility into resource utilization, and notifications can be set for metrics that cross specified thresholds. These notifications can be automatically sent to PagerDuty, which reliably alerts the correct on-call responder through their preferred contact methods.
+Requirements
+General:
+
+This integration expects to find in the Message property a nested JSON-encoded object; if this is not received, no alert will trigger. If you have any questions or need any assistance, please contact our Support team.
+To Configure the Integration:
+
+In PagerDuty: Managers, Admins, Global Admins and Account Owners can configure the integration.
+Note
+
+This integration is available for Amazon CloudWatch on AWS Cloud or AWS Outposts.
+
+How it Works
+When an AWS service metric goes beyond a predefined threshold, a CloudWatch alert sends a notification to a PagerDuty endpoint, triggering an incident.
+When the AWS service metric returns to an OK state below the predefined threshold, a resolve event is sent to the same endpoint, resolving the PagerDuty incident.
+Version
+This guide details configuration of the Amazon CloudWatch V1 integration.
+
+Integration Walkthrough
+In PagerDuty
+There are three ways to integrate Amazon CloudWatch with PagerDuty:
+
+Integrate With Event Orchestration: Integrating with Event Orchestration may be beneficial if you want to build nested rules based on the payload coming from AWS.
+Integrate With Event Rules: Integrating with global or service-level event rules may be beneficial if you want to build different rules based on the payload coming from AWS.
+Integrate With a PagerDuty Service: Integrating with a PagerDuty service directly can be beneficial if you don’t need to route alerts from AWS to different responders based on the event payload. You can still use service-level event rules to perform actions such as suppressing.
+
+Integrate With Event Orchestration
+Collapse
+Configure a Global Orchestration Integration
+Configure a Global Orchestration in your PagerDuty account.
+Navigate to Automation  Event Orchestration  click the name of your Global Orchestration.
+Click the Global Orchestration Key  dropdown and then copy the Integration Key.
+Once you have your Integration Key, the Integration URL will be:
+https://events.pagerduty.com/x-ere/[YOUR_INTEGRATION_KEY_HERE]
+
+You can now proceed to the In the AWS Management Console section below.
+
+Configure a Service Orchestration Integration
+Configure a Service Orchestration in your PagerDuty account.
+Create a Generic Events API integration on the same service.
+Once complete, copy the Integration Key and paste it into the following URL:
+https://events.pagerduty.com/x-ere/[YOUR_INTEGRATION_KEY_HERE]
+
+Integrate With Rulesets
+Collapse
+Configure a Global Ruleset Integration
+From the Automation menu, select Event Rules and click your Default Global Ruleset.
+On the Event Rules screen, click the Incoming Event Source dropdown and copy your Integration Key.
+Once you have your Integration Key, the Integration URL will be:
+https://events.pagerduty.com/x-ere/[YOUR_INTEGRATION_KEY_HERE]
+
+You can now proceed to the In the AWS Management Console section below.
+
+Configure a Service Event Rules Integration
+To use service-level event rules:
+
+Configure service event rules on your preferred service.
+Create a Generic Events API integration on the same service.
+Once complete, copy the Integration Key and paste it into the following URL:
+https://events.pagerduty.com/integration/[YOUR_INTEGRATION_KEY_HERE]/enqueue
+
+You can now proceed to the In the AWS Management Console section below.
+
+Integrate With a PagerDuty Service
+Collapse
+Add to a New Service
+To add the integration to a new service, navigate to Services  Service Directory and click New Service.
+Follow the prompts and configure the service to your preferences. On the Integrations screen, select Amazon CloudWatch from the search bar dropdown, or from our most popular integrations list.
+Once you are done entering your service settings, click Create Service.
+You will now be in the service’s Integrations tab. Find your integration in the list and click the  to view and copy your Integration URL. Keep it in a safe place for later use.
+You can now proceed to the In the AWS Management Console section below.
+Add to an Existing Service
+To add an integration to an existing service, go to Services  Service Directory and select the service where you would like to configure the integration. Select the Integrations tab and click Add another integration.
+Select Amazon CloudWatch from the search bar dropdown, or from our most popular integrations list.
+Click Add. Find your integration in the list and click the  to the right to view and copy your Integration URL. Keep it in a safe place for later use.
+You can now proceed to the In the AWS Management Console section below.
+In the AWS Management Console
+In the Services search bar, search and select Simple Notification Service. In the SNS dashboard left menu, select Topics and click Create Topic on the right. This topic will be used to route alerts to PagerDuty from AWS.
+
+Select the Standard Topic Type.
+
+Next, perform the following:
+
+Name: Enter a name for your topic. You may want to name your topic after your PagerDuty service’s name.
+Display name (optional): Enter an optional display name.
+Click Create topic.
+Now that your topic has been created, select Subscriptions in the left menu and click Create Subscription.
+
+Perform the following:
+
+Topic ARN: Select the Topic ARN of the topic you just created.
+Protocol: Select HTTPS.
+Endpoint: Paste your Integration URL (generated in steps above).
+Ensure that the Enable raw message delivery checkbox is unchecked.
+Click Create Subscription.
+Your subscription should be automatically confirmed. Refresh the page to make sure the Status is Confirmed and not PendingConfirmation.
+
+Next, you will create a CloudWatch alarm that will send notifications to your SNS topic when a metric falls outside of a predefined threshold.
+
+In the Services search bar, search and select Cloudwatch. Select Alarms  All Alarms and then click Create Alarm on the right.
+
+Click Select metric. Select your metric using either of the following methods:
+
+Select the service namespace that contains the metric. Continue selecting your preferred options, which will narrow down your choices until a list of metrics appears. Select the check box next to your desired Metric Name.
+In the search field, enter the name of a metric, dimension, or resource ID and hit Enter. Then select your desired results and continue selecting your preferred options until a list of metrics appears. Select the check box next to your desired metric.
+Read more about commonly used metrics.
+
+Next, select the Graphed metrics tab. Under Statistic, select one of the statistics or predefined percentiles, or specify a custom percentile (for example, p95.45). Under Period, select the evaluation period for the alarm. Click Select metric to continue.
+On the next page under Conditions, select from the following Threshold types:
+Threshold Type	Instructions
+Static	a) Under Whenever NumberOfObjects is…, select Greater, Greater/Equal, Lower/Equal or Lower.
+
+b) Under than… enter your desired threshold value.
+Anomaly detection	a) Under Whenever BucketSizeBytes is… select Outside of the band, Greater than the band or Lower than the band.
+
+b) Under Anomaly detection threshold, set your threshold value.
+Click Next to continue.
+
+First, you will configure the In alarm state notification, which will trigger a PagerDuty incident when the metric has met your predefined threshold. Select the In alarm and Select an existing SNS topic radio buttons, and then select the SNS Topic (created above) from the Send a notification to… field.
+Next, you will configure the OK state notification, which will automatically resolve the PagerDuty incident if the metric has fallen back into an OK state (not meeting or exceeding the threshold). Click Add Notification. Select the OK and Select an existing SNS topic radio buttons, and then select the SNS Topic (created above) from the Send a notification to… field. Click Next to continue.
+Notification settings
+
+On the next page, enter an Alarm name and Alarm description. Click Next to continue.
+On the Preview and Create screen, review your alarm’s details. If you need to edit any details, click Edit to the right of each step. Once you have confirmed all details, click Create alarm.
+You should then see a confirmation dialog that your alarm was saved successfully.
+The integration is now complete. When your alarm threshold is met, it will trigger an incident in PagerDuty. Once that alarm is back in an OK state, the incident automatically resolves in PagerDuty.
+Resolved incident
+Resolved incident
+
+Commonly Used Metrics
+Metrics that are commonly used with the Amazon CloudWatch integration include, but are not limited to:
+
+EC2
+To use the CloudWatch integration with EC2 instance metrics, follow the instructions in the Integration Walkthrough and perform the following when you Create a CloudWatch Alarm:
+
+In step 9, select EC2  Per instance metrics.
+Check the checkbox next to the Instance Name with your preferred Metric Name on the right. Commonly used metrics are CPU Utilization and Status Check Failed. Please read AWS’ documentation for more information on EC2 metrics.
+Continue with the instructions in steps 10-17.
+S3 Storage Lens
+To use the CloudWatch integration with S3 Storage Lens metrics, follow the instructions in the Integration Walkthrough and perform the following when you Create a CloudWatch Alarm:
+
+In step 9, select S3  Storage Metrics.
+Check the checkbox next to the BucketName with your preferred Metric Name on the right. Commonly used metrics are Incomplete Multipart Upload Storage Bytes, Unencrypted Storage Bytes and Non-Current Version Storage Bytes. Please read AWS’ documentation for more information on S3 Storage Lens metrics.
+Continue with the instructions in steps 10-17.
+EKS
+To use the CloudWatch integration with EKS metrics, follow the instructions in the Integration Walkthrough and perform the following when you Create a CloudWatch Alarm:
+
+In step 9, select EKS  Container Insights.
+Check the checkbox next to your preferred Metric Name on the right. Commonly used metrics are cluster_failed_node_count and node_cpu_utilization. Please read AWS’ documentation for more information on EKS metrics.
+Continue with the instructions in steps 10-17.
